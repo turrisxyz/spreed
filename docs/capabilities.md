@@ -95,3 +95,4 @@ title: Capabilities
 
 ## 15
 * `chat-permission` - When permission 128 is required to post chat messages, reaction or share items to the conversation
+* `config => call => enabled` - Whether calling is enabled on the instance or not

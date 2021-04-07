@@ -56,6 +56,7 @@ class CallController extends AEnvironmentAwareController {
 
 	/**
 	 * @PublicPage
+	 * @RequireCallEnabled
 	 * @RequireParticipant
 	 * @RequireReadWriteConversation
 	 * @RequireModeratorOrNoLobby
@@ -97,6 +98,7 @@ class CallController extends AEnvironmentAwareController {
 
 	/**
 	 * @PublicPage
+	 * @RequireCallEnabled
 	 * @RequireParticipant
 	 * @RequireReadWriteConversation
 	 * @RequireModeratorOrNoLobby
@@ -129,6 +131,7 @@ class CallController extends AEnvironmentAwareController {
 
 	/**
 	 * @PublicPage
+	 * @RequireCallEnabled
 	 * @RequireParticipant
 	 *
 	 * @param int flags
