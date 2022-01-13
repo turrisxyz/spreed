@@ -119,9 +119,8 @@ the main body of the message as well as a quote.
 					<!-- Message Actions -->
 					<div
 						v-if="hasActions"
-						v-show="showActions"
 						class="message-body__main__right__actions"
-						:class="{ 'tall' : isTallEnough }">
+						:class="{ 'tall' : isTallEnough, 'action-show': showActions, 'action-hide': !showActions }">
 						<Actions
 							v-show="isReplyable">
 							<ActionButton
@@ -954,5 +953,13 @@ export default {
 	&.retry-option {
 		cursor: pointer;
 	}
+}
+.action-show {
+	opacity: 1;
+	visibility: visible;
+}
+.action-hide {
+	opacity: 0;
+	visibility: hidden;
 }
 </style>
