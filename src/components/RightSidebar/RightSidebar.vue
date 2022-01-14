@@ -21,7 +21,7 @@
 -->
 
 <template>
-	<div v-show="showLargeBox" class="right-sidebar-container">
+	<div v-show="showSidebarPlaceholder" class="right-sidebar-container">
 		<AppSidebar
 			id="app-sidebar"
 			:title="title"
@@ -142,7 +142,7 @@ export default {
 		opened() {
 			return !!this.token && !this.isInLobby && this.show
 		},
-		showLargeBox() {
+    showSidebarPlaceholder() {
 			if (!this.largeBox) {
 				return !!this.token && !this.isInLobby && this.show
 			} else {
