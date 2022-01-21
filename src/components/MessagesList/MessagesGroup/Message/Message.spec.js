@@ -560,6 +560,7 @@ describe('Message.vue', () => {
 			const actionsEl = wrapper.find(ACTIONS_SELECTOR)
 
 			expect(wrapper.vm.showActions).toBe(false)
+			expect(actionsEl.isVisible()).toBe(false)
 
 			await wrapper.find('.message-body').trigger('mouseover')
 
@@ -569,6 +570,7 @@ describe('Message.vue', () => {
 			await wrapper.find('.message-body').trigger('mouseleave')
 
 			expect(wrapper.vm.showActions).toBe(false)
+			expect(actionsEl.isVisible()).toBe(false)
 
 			// actions are always present and rendered
 			const actions = wrapper.findAllComponents({ name: 'Actions' })

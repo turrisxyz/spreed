@@ -34,7 +34,7 @@ the main body of the message as well as a quote.
 		:data-previous-message-id="previousMessageId"
 		class="message">
 		<div
-			:class="{'hover': showActions && !isSystemMessage && !isDeletedMessage, 'system' : isSystemMessage}"
+			:class="{'normal-message-body': !isSystemMessage && !isDeletedMessage, 'system' : isSystemMessage}"
 			class="message-body"
 			@mouseover="handleMouseover"
 			@mouseleave="handleMouseleave">
@@ -119,10 +119,10 @@ the main body of the message as well as a quote.
 					<!-- Message Actions -->
 					<div
 						v-if="hasActions"
+						v-show="showActions"
 						class="message-body__main__right__actions"
-						:class="{ 'tall' : isTallEnough, 'action-show': showActions, 'action-hide': !showActions }">
-						<Actions
-							v-show="isReplyable">
+						:class="{ 'tall' : isTallEnough }">
+						<Actions v-show="isReplyable">
 							<ActionButton
 								icon="icon-reply"
 								@click.stop="handleReply">
@@ -132,7 +132,9 @@ the main body of the message as well as a quote.
 						<Actions
 							:force-menu="true"
 							:container="container"
-							:boundaries-element="containerElement">
+							:boundaries-element="containerElement"
+							@open="handleActionMenuUpdate('open')"
+							@close="handleActionMenuUpdate('close')">
 							<ActionButton
 								v-if="isPrivateReplyable"
 								icon="icon-user"
@@ -417,6 +419,7 @@ export default {
 			seen: false,
 			// Shows/hides the message forwarder component
 			showForwarder: false,
+			isActionMenuOpen: false,
 		}
 	},
 
@@ -775,7 +778,15 @@ export default {
 		},
 
 		handleMouseleave() {
-			this.showActions = false
+			if (!this.isActionMenuOpen) this.showActions = false
+		},
+		handleActionMenuUpdate(type) {
+			if (type === 'open') {
+				this.isActionMenuOpen = true
+			} else if (type === 'close') {
+				this.isActionMenuOpen = false
+				this.showActions = false
+			}
 		},
 		async handlePrivateReply() {
 			// open the 1:1 conversation
@@ -813,6 +824,12 @@ export default {
 @import '../../../../assets/variables';
 @import '../../../../assets/buttons';
 
+.normal-message-body {
+	&:hover {
+		border-radius: 8px;
+		background-color: var(--color-background-hover);
+	}
+}
 .message-body {
 	padding: 4px;
 	font-size: $chat-font-size;
@@ -953,13 +970,5 @@ export default {
 	&.retry-option {
 		cursor: pointer;
 	}
-}
-.action-show {
-	opacity: 1;
-	visibility: visible;
-}
-.action-hide {
-	opacity: 0;
-	visibility: hidden;
 }
 </style>
