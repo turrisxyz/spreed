@@ -39,8 +39,7 @@
 
 		<ul class="turn-servers">
 			<transition-group name="fade" tag="li">
-				<TurnServer
-					v-for="(server, index) in servers"
+				<TurnServer v-for="(server, index) in servers"
 					:key="`server${index}`"
 					:schemes.sync="servers[index].schemes"
 					:server.sync="servers[index].server"

@@ -25,8 +25,7 @@ the main body of the message as well as a quote.
 </docs>
 
 <template>
-	<li
-		:id="`message_${id}`"
+	<li :id="`message_${id}`"
 		ref="message"
 		:data-message-id="id"
 		:data-seen="seen"
@@ -44,8 +43,7 @@ the main body of the message as well as a quote.
 				aria-level="4">
 				{{ actorDisplayName }}
 			</div>
-			<div
-				ref="messageMain"
+			<div ref="messageMain"
 				class="message-body__main">
 				<div v-if="isSingleEmoji"
 					class="message-body__main__text">
@@ -66,8 +64,7 @@ the main body of the message as well as a quote.
 					<RichText :text="message" :arguments="richParameters" :autolink="true" />
 				</div>
 				<div v-if="!isDeletedMessage" class="message-body__main__right">
-					<span
-						v-tooltip.auto="messageDate"
+					<span v-tooltip.auto="messageDate"
 						class="date"
 						:style="{'visibility': hasDate ? 'visible' : 'hidden'}"
 						:class="{'date--self': showSentIcon}">{{ messageTime }}</span>
@@ -82,12 +79,10 @@ the main body of the message as well as a quote.
 						@focus="showReloadButton = true"
 						@mouseleave="showReloadButton = true"
 						@blur="showReloadButton = true">
-						<button
-							v-if="sendingErrorCanRetry && showReloadButton"
+						<button v-if="sendingErrorCanRetry && showReloadButton"
 							class="nc-button nc-button__main--dark"
 							@click="handleRetry">
-							<Reload
-								decorative
+							<Reload decorative
 								title=""
 								:size="16" />
 						</button>
@@ -117,20 +112,17 @@ the main body of the message as well as a quote.
 							:size="16" />
 					</div>
 					<!-- Message Actions -->
-					<div
-						v-if="hasActions"
+					<div v-if="hasActions"
 						v-show="showActions"
 						class="message-body__main__right__actions"
 						:class="{ 'tall' : isTallEnough }">
 						<Actions v-show="isReplyable">
-							<ActionButton
-								icon="icon-reply"
+							<ActionButton icon="icon-reply"
 								@click.stop="handleReply">
 								{{ t('spreed', 'Reply') }}
 							</ActionButton>
 						</Actions>
-						<Actions
-							:force-menu="true"
+						<Actions :force-menu="true"
 							:container="container"
 							:boundaries-element="containerElement"
 							@open="handleActionMenuUpdate('open')"
@@ -142,45 +134,37 @@ the main body of the message as well as a quote.
 								@click.stop="handlePrivateReply">
 								{{ t('spreed', 'Reply privately') }}
 							</ActionButton>
-							<ActionButton
-								icon="icon-external"
+							<ActionButton icon="icon-external"
 								:close-after-click="true"
 								@click.stop.prevent="handleCopyMessageLink">
 								{{ t('spreed', 'Copy message link') }}
 							</ActionButton>
-							<ActionButton
-								:close-after-click="true"
+							<ActionButton :close-after-click="true"
 								@click.stop="handleMarkAsUnread">
 								<template #icon>
-									<EyeOffOutline
-										decorative
+									<EyeOffOutline decorative
 										title=""
 										:size="16" />
 								</template>
 								{{ t('spreed', 'Mark as unread') }}
 							</ActionButton>
-							<ActionLink
-								v-if="linkToFile"
+							<ActionLink v-if="linkToFile"
 								icon="icon-text"
 								:href="linkToFile">
 								{{ t('spreed', 'Go to file') }}
 							</ActionLink>
-							<ActionButton
-								v-if="!isCurrentGuest && !isFileShare"
+							<ActionButton v-if="!isCurrentGuest && !isFileShare"
 								:close-after-click="true"
 								@click.stop="showForwarder = true">
-								<Share
-									slot="icon"
+								<Share slot="icon"
 									:size="16"
 									decorative
 									title="" />
 								{{ t('spreed', 'Forward message') }}
 							</ActionButton>
 							<ActionSeparator v-if="messageActions.length > 0" />
-							<template
-								v-for="action in messageActions">
-								<ActionButton
-									:key="action.label"
+							<template v-for="action in messageActions">
+								<ActionButton :key="action.label"
 									:icon="action.icon"
 									:close-after-click="true"
 									@click="action.callback(messageAPIData)">
@@ -189,8 +173,7 @@ the main body of the message as well as a quote.
 							</template>
 							<template v-if="isDeleteable">
 								<ActionSeparator />
-								<ActionButton
-									icon="icon-delete"
+								<ActionButton icon="icon-delete"
 									:close-after-click="true"
 									@click.stop="handleDelete">
 									{{ t('spreed', 'Delete') }}

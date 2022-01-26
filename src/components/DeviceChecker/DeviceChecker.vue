@@ -22,7 +22,7 @@
 <template>
 	<Modal v-if="modal"
 		class="talk-modal"
-		size="large"
+		size="normal"
 		@close="closeModal">
 		<div class="device-checker">
 			<h2 class="device-checker__title">
@@ -38,8 +38,7 @@
 					tabindex="-1" />
 				<div v-show="!showVideo"
 					class="preview__novideo">
-					<VideoBackground
-						:display-name="displayName"
+					<VideoBackground :display-name="displayName"
 						:user="userId" />
 					<Avatar v-if="userId"
 						:size="128"
@@ -61,47 +60,40 @@
 			-->
 			<div class="device-checker__call-preferences">
 				<!-- Audio toggle -->
-				<button
-					v-tooltip="audioButtonTooltip"
+				<button v-tooltip="audioButtonTooltip"
 					class="device-toggle"
 					:aria-label="audioButtonTooltip"
 					:disabled="!audioPreviewAvailable"
 					@click="toggleAudio">
 					<span class="device-toggle__icon">
-						<Microphone
-							v-if="audioOn"
+						<Microphone v-if="audioOn"
 							title=""
 							decorative
 							:size="20" />
-						<MicrophoneOff
-							v-else
+						<MicrophoneOff v-else
 							title=""
 							decorative
 							:size="20" />
 					</span>
 				</button>
-				<VolumeIndicator
-					class="indicator"
+				<VolumeIndicator class="indicator"
 					:audio-preview-available="audioPreviewAvailable"
 					:current-volume="currentVolume"
 					:volume-threshold="volumeThreshold"
 					:disabled="!audioOn" />
 
 				<!-- Video toggle -->
-				<button
-					v-tooltip="videoButtonTooltip"
+				<button v-tooltip="videoButtonTooltip"
 					class="device-toggle"
 					:aria-label="videoButtonTooltip"
 					:disabled="!videoPreviewAvailable"
 					@click="toggleVideo">
 					<span class="device-toggle__icon">
-						<Video
-							v-if="videoOn"
+						<Video v-if="videoOn"
 							title=""
 							decorative
 							:size="20" />
-						<VideoOff
-							v-else
+						<VideoOff v-else
 							title=""
 							decorative
 							:size="20" />
@@ -109,22 +101,19 @@
 				</button>
 
 				<!-- Blur toggle -->
-				<button
-					v-if="videoPreviewAvailable && blurPreviewAvailable"
+				<button v-if="videoPreviewAvailable && blurPreviewAvailable"
 					v-tooltip="blurButtonTooltip"
 					class="device-toggle"
 					:aria-label="blurButtonTooltip"
 					:disabled="!blurPreviewAvailable"
 					@click="toggleBlur">
 					<span class="device-toggle__icon">
-						<Blur
-							v-if="blurOn"
+						<Blur v-if="blurOn"
 							slot="icon"
 							:size="20"
 							decorative
 							title="" />
-						<BlurOff
-							v-else
+						<BlurOff v-else
 							slot="icon"
 							:size="20"
 							decorative
@@ -139,8 +128,7 @@
 					class="select-devices"
 					@click="showDeviceSelection = true">
 					<span class="select-devices__icon">
-						<Cog
-							title=""
+						<Cog title=""
 							decorative
 							:size="20" />
 					</span>
@@ -163,8 +151,7 @@
 			</CheckboxRadioSwitch>
 
 			<!-- Join call -->
-			<CallButton
-				class="call-button"
+			<CallButton class="call-button"
 				:force-join-call="true" />
 		</div>
 	</Modal>
@@ -375,11 +362,11 @@ export default {
 @include avatar-mixin(128px);
 
 .device-checker {
-	width: 350px;
 	padding: 20px;
 	background-color: var(--color-main-background);
 	overflow-y: auto;
 	overflow-x: hidden;
+	margin: auto;
 	&__title {
 		text-align: center;
 	}

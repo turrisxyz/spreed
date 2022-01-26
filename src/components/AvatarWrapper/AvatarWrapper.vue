@@ -20,8 +20,7 @@
 -->
 
 <template>
-	<div
-		class="avatar-wrapper"
+	<div class="avatar-wrapper"
 		:class="{'offline': offline}">
 		<div v-if="iconClass"
 			class="icon"

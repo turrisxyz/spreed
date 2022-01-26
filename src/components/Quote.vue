@@ -35,8 +35,7 @@ components.
 			</div>
 			<div v-if="isFileShareMessage"
 				class="quote__main__text">
-				<RichText
-					:text="message"
+				<RichText :text="message"
 					:arguments="richParameters"
 					:autolink="true" />
 			</div>
@@ -47,8 +46,7 @@ components.
 		</div>
 		<div v-if="isNewMessageFormQuote" class="quote__main__right">
 			<Actions class="quote__main__right__actions">
-				<ActionButton
-					icon="icon-close"
+				<ActionButton icon="icon-close"
 					:close-after-click="true"
 					@click.stop="handleAbortReply" />
 			</Actions>

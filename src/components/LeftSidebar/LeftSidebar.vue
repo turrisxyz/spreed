@@ -21,29 +21,24 @@
 
 <template>
 	<AppNavigation :aria-label="t('spreed', 'Conversation list')">
-		<div
-			class="new-conversation"
+		<div class="new-conversation"
 			:class="{ 'new-conversation--scrolled-down': !isScrolledToTop }">
-			<SearchBox
-				v-model="searchText"
+			<SearchBox v-model="searchText"
 				class="conversations-search"
 				:is-searching="isSearching"
 				@input="debounceFetchSearchResults"
 				@submit="onInputEnter"
 				@abort-search="abortSearch" />
-			<NewGroupConversation
-				v-if="canStartConversations" />
+			<NewGroupConversation v-if="canStartConversations" />
 		</div>
-		<template #list class="left-sidebar__list">
-			<div
-				ref="scroller"
+		<template #list>
+			<div ref="scroller"
 				class="left-sidebar__list"
 				@scroll="debounceHandleScroll">
 				<AppNavigationCaption v-if="isSearching"
 					:title="t('spreed', 'Conversations')" />
 				<li role="presentation">
-					<ConversationsList
-						ref="conversationsList"
+					<ConversationsList ref="conversationsList"
 						:conversations-list="conversationsList"
 						:initialised-conversations="initialisedConversations"
 						:search-text="searchText"
@@ -52,21 +47,17 @@
 				</li>
 				<template v-if="isSearching">
 					<template v-if="!listedConversationsLoading && searchResultsListedConversations.length > 0">
-						<AppNavigationCaption
-							:title="t('spreed', 'Open conversations')" />
-						<Conversation
-							v-for="item of searchResultsListedConversations"
+						<AppNavigationCaption :title="t('spreed', 'Open conversations')" />
+						<Conversation v-for="item of searchResultsListedConversations"
 							:key="item.id"
 							:item="item"
 							:is-search-result="true"
 							@click="joinListedConversation(item)" />
 					</template>
 					<template v-if="searchResultsUsers.length !== 0">
-						<AppNavigationCaption
-							:title="t('spreed', 'Users')" />
+						<AppNavigationCaption :title="t('spreed', 'Users')" />
 						<li v-if="searchResultsUsers.length !== 0" role="presentation">
-							<ConversationsOptionsList
-								:items="searchResultsUsers"
+							<ConversationsOptionsList :items="searchResultsUsers"
 								@click="createAndJoinConversation" />
 						</li>
 					</template>
@@ -79,21 +70,17 @@
 				</template>
 				<template v-if="showStartConversationsOptions">
 					<template v-if="searchResultsGroups.length !== 0">
-						<AppNavigationCaption
-							:title="t('spreed', 'Groups')" />
+						<AppNavigationCaption :title="t('spreed', 'Groups')" />
 						<li v-if="searchResultsGroups.length !== 0" role="presentation">
-							<ConversationsOptionsList
-								:items="searchResultsGroups"
+							<ConversationsOptionsList :items="searchResultsGroups"
 								@click="createAndJoinConversation" />
 						</li>
 					</template>
 
 					<template v-if="searchResultsCircles.length !== 0">
-						<AppNavigationCaption
-							:title="t('spreed', 'Circles')" />
+						<AppNavigationCaption :title="t('spreed', 'Circles')" />
 						<li v-if="searchResultsCircles.length !== 0" role="presentation">
-							<ConversationsOptionsList
-								:items="searchResultsCircles"
+							<ConversationsOptionsList :items="searchResultsCircles"
 								@click="createAndJoinConversation" />
 						</li>
 					</template>

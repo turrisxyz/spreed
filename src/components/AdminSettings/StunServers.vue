@@ -40,8 +40,7 @@
 
 		<ul class="stun-servers">
 			<transition-group name="fade" tag="li">
-				<StunServer
-					v-for="(server, index) in servers"
+				<StunServer v-for="(server, index) in servers"
 					:key="`server${index}`"
 					:server.sync="servers[index]"
 					:index="index"

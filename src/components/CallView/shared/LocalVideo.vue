@@ -28,16 +28,14 @@
 		<div v-show="localMediaModel.attributes.videoEnabled"
 			:class="videoWrapperClass"
 			class="videoWrapper">
-			<video
-				id="localVideo"
+			<video id="localVideo"
 				ref="video"
 				disablePictureInPicture="true"
 				:class="videoClass"
 				class="video" />
 		</div>
 		<div v-if="!localMediaModel.attributes.videoEnabled && !isSidebar" class="avatar-container">
-			<VideoBackground
-				v-if="isGrid || isStripe"
+			<VideoBackground v-if="isGrid || isStripe"
 				:display-name="displayName"
 				:user="userId" />
 			<Avatar v-if="userId"
@@ -57,8 +55,7 @@
 
 		<div v-if="mouseover && isSelectable" class="hover-shadow" />
 		<div class="bottom-bar">
-			<button
-				v-if="isBig"
+			<button v-if="isBig"
 				class="bottom-bar__button"
 				@click="handleStopFollowing">
 				{{ stopFollowingLabel }}

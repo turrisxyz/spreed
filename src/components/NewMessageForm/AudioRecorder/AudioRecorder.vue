@@ -20,10 +20,8 @@
 -->
 
 <template>
-	<div
-		class="audio-recorder">
-		<button
-			v-if="!isRecording"
+	<div class="audio-recorder">
+		<button v-if="!isRecording"
 			v-tooltip.auto="{
 				content: startRecordingTooltip,
 				delay: tooltipDelay,
@@ -32,40 +30,34 @@
 			class="audio-recorder__trigger nc-button nc-button__main"
 			:class="{'audio-recorder__trigger--disabled': !canStartRecording}"
 			@click="start">
-			<Microphone
-				:size="16"
+			<Microphone :size="16"
 				title=""
 				decorative />
 		</button>
 		<div v-else class="wrapper">
-			<button
-				v-tooltip.auto="{
+			<button v-tooltip.auto="{
 					content: abortRecordingTooltip,
 					delay: tooltipDelay,
 				}"
 				class="audio-recorder__stop nc-button nc-button__main"
 				@click="abortRecording">
-				<Close
-					:size="16"
+				<Close :size="16"
 					title=""
 					decorative />
 			</button>
 			<div class="audio-recorder__info">
 				<div class="recording-indicator fadeOutIn" />
-				<span
-					class="time">
+				<span class="time">
 					{{ parsedRecordTime }}</span>
 			</div>
-			<button
-				v-tooltip.auto="{
+			<button v-tooltip.auto="{
 					content: stopRecordingTooltip,
 					delay: tooltipDelay,
 				}"
 				class="audio-recorder__trigger nc-button nc-button__main"
 				:class="{'audio-recorder__trigger--recording': isRecording}"
 				@click="stop">
-				<Check
-					:size="16"
+				<Check :size="16"
 					title=""
 					decorative />
 			</button>

@@ -20,8 +20,7 @@
 -->
 
 <template>
-	<ListItem
-		:title="item.displayName"
+	<ListItem :title="item.displayName"
 		:anchor-id="`conversation_${item.token}`"
 		:active="isActive"
 		:to="to"
@@ -30,8 +29,7 @@
 		:counter-type="counterType"
 		@click="onClick">
 		<template #icon>
-			<ConversationIcon
-				:item="item"
+			<ConversationIcon :item="item"
 				:hide-favorite="false"
 				:hide-call="false"
 				:disable-menu="true" />
@@ -50,24 +48,20 @@
 				@click.prevent.exact="toggleFavoriteConversation">
 				{{ labelFavorite }}
 			</ActionButton>
-			<ActionButton
-				icon="icon-clippy"
+			<ActionButton icon="icon-clippy"
 				@click.stop.prevent="copyLinkToConversation">
 				{{ t('spreed', 'Copy link') }}
 			</ActionButton>
-			<ActionButton
-				:close-after-click="true"
+			<ActionButton :close-after-click="true"
 				@click.prevent.exact="markConversationAsRead">
 				<template #icon>
-					<EyeOutline
-						decorative
+					<EyeOutline decorative
 						title=""
 						:size="16" />
 				</template>
 				{{ t('spreed', 'Mark as read') }}
 			</ActionButton>
-			<ActionButton
-				icon="icon-settings"
+			<ActionButton icon="icon-settings"
 				:close-after-click="true"
 				@click.prevent.exact="showConversationSettings">
 				{{ t('spreed', 'Conversation settings') }}
@@ -341,7 +335,10 @@ export default {
 		 */
 		async deleteConversation() {
 			OC.dialogs.confirm(
-				t('spreed', 'Do you really want to delete "{displayName}"?', this.item),
+				t('spreed', 'Do you really want to delete "{displayName}"?', this.item, undefined, {
+					escape: false,
+					sanitize: false,
+				}),
 				t('spreed', 'Delete conversation'),
 				async function(decision) {
 					if (!decision) {

@@ -30,8 +30,7 @@
 				<p class="danger-zone__hint">
 					{{ t('spreed', 'Once a conversation is left, to rejoin a closed conversation, an invite is needed. An open conversation can be rejoined at any time.') }}
 				</p>
-				<button
-					@click.prevent.exact="leaveConversation">
+				<button @click.prevent.exact="leaveConversation">
 					{{ t('spreed', 'Leave conversation') }}
 				</button>
 			</template>
@@ -41,8 +40,7 @@
 				<p class="danger-zone__hint">
 					{{ t('spreed', 'Permanently delete this conversation.') }}
 				</p>
-				<button
-					class="critical error"
+				<button class="critical error"
 					@click.prevent.exact="deleteConversation">
 					{{ t('spreed', 'Delete conversation') }}
 				</button>
@@ -53,8 +51,7 @@
 				<p class="danger-zone__hint">
 					{{ t('spreed', 'Permanently delete all the messages in this conversation.') }}
 				</p>
-				<button
-					class="critical error"
+				<button class="critical error"
 					@click.prevent.exact="clearChatHistory">
 					{{ t('spreed', 'Delete chat messages') }}
 				</button>
@@ -120,7 +117,10 @@ export default {
 		 */
 		async deleteConversation() {
 			OC.dialogs.confirm(
-				t('spreed', 'Do you really want to delete "{displayName}"?', this.conversation),
+				t('spreed', 'Do you really want to delete "{displayName}"?', this.conversation, undefined, {
+					escape: false,
+					sanitize: false,
+				}),
 				t('spreed', 'Delete conversation'),
 				async function(decision) {
 					if (!decision) {
@@ -149,7 +149,10 @@ export default {
 		 */
 		async clearChatHistory() {
 			OC.dialogs.confirm(
-				t('spreed', 'Do you really want to delete all messages in "{displayName}"?', this.conversation),
+				t('spreed', 'Do you really want to delete all messages in "{displayName}"?', this.conversation, undefined, {
+					escape: false,
+					sanitize: false,
+				}),
 				t('spreed', 'Delete all chat messages'),
 				async function(decision) {
 					if (!decision) {

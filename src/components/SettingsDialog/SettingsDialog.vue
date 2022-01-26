@@ -20,8 +20,7 @@
 -->
 
 <template>
-	<AppSettingsDialog
-		:open.sync="showSettings"
+	<AppSettingsDialog :open.sync="showSettings"
 		:show-navigation="true"
 		first-selected-section="keyboard shortcuts"
 		:container="container">
@@ -35,8 +34,7 @@
 			<h3 class="app-settings-section__hint">
 				{{ locationHint }}
 			</h3>
-			<input
-				type="text"
+			<input type="text"
 				class="app-settings-section__input"
 				:value="attachmentFolder"
 				:disabled="attachmentFolderLoading"
@@ -54,8 +52,7 @@
 				@change="toggleReadStatusPrivacy">
 			<label for="read_status_privacy">{{ t('spreed', 'Share my read-status and show the read-status of others') }}</label>
 		</AppSettingsSection>
-		<AppSettingsSection
-			:title="t('spreed', 'Sounds')"
+		<AppSettingsSection :title="t('spreed', 'Sounds')"
 			class="app-settings-section">
 			<input id="play_sounds"
 				:checked="playSounds"

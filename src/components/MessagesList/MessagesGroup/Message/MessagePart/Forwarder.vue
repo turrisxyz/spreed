@@ -23,8 +23,7 @@
 	<div class="forwarder">
 		<!-- First step of the flow: selection of the room to which forward the
 		message to -->
-		<RoomSelector
-			v-if="!showForwardedConfirmation"
+		<RoomSelector v-if="!showForwardedConfirmation"
 			:container="container"
 			:show-postable-only="true"
 			:dialog-title="dialogTitle"

@@ -67,16 +67,14 @@
 				     strange times in which no item is selected and thus there
 				     is no data, so do not use the Mention component in those
 				     cases. -->
-				<Mention
-					v-if="scope.current.id"
+				<Mention v-if="scope.current.id"
 					:id="scope.current.id"
 					:type="getTypeForMentionComponent(scope.current)"
 					:name="scope.current.label"
 					:data-mention-id="scope.current.id" />
 			</span>
 		</template>
-		<div
-			ref="contentEditable"
+		<div ref="contentEditable"
 			v-shortkey.once="['c']"
 			:contenteditable="activeInput"
 			:placeHolder="placeholderText"
@@ -87,6 +85,7 @@
 			@shortkey="focusInput"
 			@keydown.enter="handleKeydownEnter"
 			@keydown.esc.prevent="handleKeydownEsc"
+			@focus="onFocus"
 			@blur="onBlur"
 			@paste="onPaste" />
 	</At>
@@ -213,6 +212,7 @@ export default {
 		return {
 			text: '',
 			autoCompleteMentionCandidates: [],
+			blurTimer: null,
 		}
 	},
 	watch: {
@@ -257,12 +257,17 @@ export default {
 			// from vue-at which also have some delay in place...
 			// a setTimeout was recommended by the library author here:
 			// https://github.com/fritx/vue-at/issues/114#issuecomment-565777450
-			setTimeout(() => {
+			this.blurTimer = setTimeout(() => {
 				if (this.$refs.at) {
 					this.$refs.at.closePanel()
 				}
-			}, 100)
+			}, 200)
 		},
+
+		onFocus() {
+			clearTimeout(this.blurTimer)
+		},
+
 		onPaste(e) {
 			e.preventDefault()
 
@@ -409,7 +414,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@use 'sass:math';
 @import '../../../assets/variables';
 
 .atwho-wrapper {
@@ -431,7 +435,7 @@ div[contenteditable] {
 	font-size: $chat-font-size;
 	line-height: $chat-line-height;
 	min-height: $clickable-area;
-	border-radius: math.div($clickable-area, 2);
+	border-radius: calc($clickable-area / 2);
 	border: 1px solid var(--color-border-dark);
 	max-height: 180px;
 	overflow-y: auto;

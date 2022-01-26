@@ -24,8 +24,7 @@
 		:key="forceReRenderKey"
 		class="description"
 		:class="{'description--editing': editing}">
-		<RichContentEditable
-			ref="contenteditable"
+		<RichContentEditable ref="contenteditable"
 			:value.sync="descriptionText"
 			class="description__contenteditable"
 			:auto-complete="()=>{}"
@@ -36,22 +35,18 @@
 			@keydown.esc="handleCancelEditing" />
 		<template v-if="!loading">
 			<template v-if="editing">
-				<button
-					class="nc-button nc-button__main description__action"
+				<button class="nc-button nc-button__main description__action"
 					:aria-label="t('spreed', 'Cancel editing description')"
 					@click="handleCancelEditing">
-					<Close
-						decorative
+					<Close decorative
 						title=""
 						:size="16" />
 				</button>
-				<button
-					class="nc-button nc-button__main primary description__action"
+				<button class="nc-button nc-button__main primary description__action"
 					:aria-label="t('spreed', 'Submit conversation description')"
 					:disabled="!canSubmit"
 					@click="handleSubmitDescription">
-					<Check
-						decorative
+					<Check decorative
 						title=""
 						:size="16" />
 				</button>
@@ -67,8 +62,7 @@
 				class="nc-button nc-button__main"
 				:aria-label="t('spreed', 'Edit conversation description')"
 				@click="handleEditDescription">
-				<Pencil
-					decorative
+				<Pencil decorative
 					title=""
 					:size="16" />
 			</button>

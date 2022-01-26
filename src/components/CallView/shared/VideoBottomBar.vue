@@ -23,11 +23,9 @@
 	<div class="wrapper"
 		:class="{'wrapper--big': isBig}">
 		<transition name="fade">
-			<div
-				v-if="!connectionStateFailedNoRestart && model.attributes.raisedHand.state"
+			<div v-if="!connectionStateFailedNoRestart && model.attributes.raisedHand.state"
 				class="bottom-bar__statusIndicator">
-				<HandBackLeft
-					class="handIndicator"
+				<HandBackLeft class="handIndicator"
 					decorative
 					title=""
 					size="18px"
@@ -45,8 +43,7 @@
 				</div>
 			</transition>
 			<transition name="fade">
-				<div
-					v-if="!isScreen"
+				<div v-if="!isScreen"
 					v-show="showVideoOverlay"
 					class="bottom-bar__mediaIndicator">
 					<button v-show="!connectionStateFailedNoRestart"
@@ -55,14 +52,12 @@
 						class="muteIndicator"
 						:disabled="!model.attributes.audioAvailable || !selfIsModerator"
 						@click.stop="forceMute">
-						<Microphone
-							v-if="showMicrophone"
+						<Microphone v-if="showMicrophone"
 							:size="20"
 							title=""
 							fill-color="#ffffff"
 							decorative />
-						<MicrophoneOff
-							v-if="showMicrophoneOff"
+						<MicrophoneOff v-if="showMicrophoneOff"
 							:size="20"
 							title=""
 							fill-color="#ffffff"
@@ -72,14 +67,12 @@
 						v-tooltip="videoButtonTooltip"
 						class="hideRemoteVideo"
 						@click.stop="toggleVideo">
-						<VideoIcon
-							v-if="showVideoButton"
+						<VideoIcon v-if="showVideoButton"
 							:size="20"
 							title=""
 							fill-color="#ffffff"
 							decorative />
-						<VideoOff
-							v-if="!showVideoButton"
+						<VideoOff v-if="!showVideoButton"
 							:size="20"
 							title=""
 							fill-color="#ffffff"
@@ -90,8 +83,7 @@
 						class="screensharingIndicator"
 						:class="screenSharingButtonClass"
 						@click.stop="switchToScreen">
-						<Monitor
-							:size="20"
+						<Monitor :size="20"
 							title=""
 							fill-color="#ffffff"
 							decorative />
@@ -100,8 +92,7 @@
 						class="iceFailedIndicator"
 						:class="{ 'not-failed': !connectionStateFailedNoRestart }"
 						disabled="true">
-						<AlertCircle
-							:size="20"
+						<AlertCircle :size="20"
 							title=""
 							fill-color="#ffffff"
 							decorative />

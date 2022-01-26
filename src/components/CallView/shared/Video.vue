@@ -30,32 +30,27 @@
 			<div v-show="showVideo"
 				:class="videoWrapperClass"
 				class="videoWrapper">
-				<video
-					ref="video"
+				<video ref="video"
 					:disablePictureInPicture="!isBig"
 					:class="videoClass"
 					class="video" />
 			</div>
 		</transition>
 		<transition name="fade">
-			<Screen
-				v-if="showSharedScreen"
+			<Screen v-if="showSharedScreen"
 				:is-big="isBig"
 				:token="token"
 				:call-participant-model="model"
 				:shared-data="sharedData" />
 		</transition>
 		<transition-group name="fade">
-			<div
-				v-if="showBackgroundAndAvatar"
+			<div v-if="showBackgroundAndAvatar"
 				:key="'backgroundAvatar'"
 				class="avatar-container">
 				<template v-if="participantUserId">
-					<VideoBackground
-						:display-name="participantName"
+					<VideoBackground :display-name="participantName"
 						:user="participantUserId" />
-					<Avatar
-						:size="avatarSize"
+					<Avatar :size="avatarSize"
 						:disable-menu="true"
 						:disable-tooltip="true"
 						:user="participantUserId"
@@ -64,10 +59,8 @@
 						:class="avatarClass" />
 				</template>
 				<template v-else>
-					<VideoBackground
-						:display-name="participantName" />
-					<div
-						:class="guestAvatarClass"
+					<VideoBackground :display-name="participantName" />
+					<div :class="guestAvatarClass"
 						class="avatar guest">
 						{{ firstLetterOfGuestName }}
 					</div>

@@ -25,14 +25,12 @@
 			class="stripe--collapse"
 			:aria-label="stripeButtonTooltip"
 			@click="handleClickStripeCollapse">
-			<ChevronDown
-				v-if="stripeOpen"
+			<ChevronDown v-if="stripeOpen"
 				fill-color="#ffffff"
 				decorative
 				title=""
 				:size="20" />
-			<ChevronUp
-				v-else
+			<ChevronUp v-else
 				fill-color="#ffffff"
 				decorative
 				title=""
@@ -46,14 +44,12 @@
 						class="grid-navigation grid-navigation__previous"
 						:aria-label="t('spreed', 'Previous page of videos')"
 						@click="handleClickPrevious">
-						<ChevronLeft
-							decorative
+						<ChevronLeft decorative
 							fill-color="#ffffff"
 							title=""
 							:size="20" />
 					</button>
-					<div
-						ref="grid"
+					<div ref="grid"
 						class="grid"
 						:class="{stripe: isStripe}"
 						:style="gridStyle"
@@ -62,8 +58,7 @@
 						<template v-if="!devMode && (!isLessThanTwoVideos || !isStripe)">
 							<EmptyCallView v-if="videos.length === 0 && !isStripe" class="video" :is-grid="true" />
 							<template v-for="callParticipantModel in displayedVideos">
-								<Video
-									:key="callParticipantModel.attributes.peerId"
+								<Video :key="callParticipantModel.attributes.peerId"
 									:class="{'video': !isStripe}"
 									:show-video-overlay="showVideoOverlay"
 									:token="token"
@@ -81,14 +76,12 @@
 						</template>
 						<!-- Grid developer mode -->
 						<template v-if="devMode">
-							<div
-								v-for="(video, key) in displayedVideos"
+							<div v-for="(video, key) in displayedVideos"
 								:key="video"
 								class="dev-mode-video video"
 								:class="{'dev-mode-screenshot': screenshotMode}">
 								<img :src="placeholderImage(key)">
-								<VideoBottomBar
-									:has-shadow="false"
+								<VideoBottomBar :has-shadow="false"
 									:model="placeholderModel(key)"
 									:shared-data="placeholderSharedData(key)"
 									:token="token"
@@ -101,8 +94,7 @@
 								class="dev-mode-video--self video"
 								:style="{'background': 'url(' + placeholderImage(8) + ')'}" />
 						</template>
-						<LocalVideo
-							v-if="!isStripe && !screenshotMode"
+						<LocalVideo v-if="!isStripe && !screenshotMode"
 							ref="localVideo"
 							class="video"
 							:is-grid="true"
@@ -119,15 +111,13 @@
 						:class="{'stripe': isStripe}"
 						:aria-label="t('spreed', 'Next page of videos')"
 						@click="handleClickNext">
-						<ChevronRight
-							decorative
+						<ChevronRight decorative
 							fill-color="#ffffff"
 							title=""
 							:size="20" />
 					</button>
 				</div>
-				<LocalVideo
-					v-if="isStripe && !screenshotMode"
+				<LocalVideo v-if="isStripe && !screenshotMode"
 					ref="localVideo"
 					class="video"
 					:is-stripe="true"
@@ -139,8 +129,7 @@
 					@switch-screen-to-id="switchScreenToId"
 					@click-video="handleClickLocalVideo" />
 				<!-- page indicator (disabled) -->
-				<div
-					v-if="numberOfPages !== 0 && hasPagination && false"
+				<div v-if="numberOfPages !== 0 && hasPagination && false"
 					class="pages-indicator">
 					<div v-for="(page, index) in numberOfPages"
 						:key="index"
