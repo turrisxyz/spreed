@@ -216,6 +216,24 @@ class NotifierTest extends TestCase {
 	}
 
 	/**
+	 * @dataProvider dataNotifySubject
+	 */
+	public function testNotifySubject(string $message, string $expected): void {
+		$comment = $this->newComment('108', 'users', 'testUser', new \DateTime('@' . 1000000016), $message);
+		$actual = $this->invokePrivate($this->getNotifier(), 'getNotificationSubject', [$comment]);
+		$this->assertEquals($expected, $actual, 'Notification subject does not match with expected');
+	}
+
+	public function dataNotifySubject(): array {
+		return [
+			['@all', 'mention_all'],
+			['@all @user', 'mention_all'],
+			['@user @all', 'mention_all'],
+			['@user', 'mention'],
+		];
+	}
+
+	/**
 	 * @dataProvider dataShouldParticipantBeNotified
 	 * @param string $actorType
 	 * @param string $actorId

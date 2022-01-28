@@ -260,7 +260,7 @@ class Notifier implements INotifier {
 			}
 			return $this->parseCall($notification, $room, $l);
 		}
-		if ($subject === 'reply' || $subject === 'mention' || $subject === 'chat') {
+		if ($subject === 'reply' || $subject === 'mention' || $subject === 'mention_all' || $subject === 'chat') {
 			return $this->parseChatMessage($notification, $room, $participant, $l);
 		}
 
@@ -458,6 +458,8 @@ class Notifier implements INotifier {
 			}
 		} elseif ($room->getType() === Room::TYPE_ONE_TO_ONE) {
 			$subject = $l->t('{user} mentioned you in a private conversation');
+		} elseif ($notification->getSubject() === 'mention_all') {
+			$subject = $l->t('{user} mentioned your group in conversation {call}');
 		} elseif ($richSubjectUser) {
 			$subject = $l->t('{user} mentioned you in conversation {call}');
 		} elseif (!$isGuest) {

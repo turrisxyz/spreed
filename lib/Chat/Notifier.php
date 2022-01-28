@@ -100,7 +100,8 @@ class Notifier {
 		if (!$usersToNotify) {
 			return $alreadyNotifiedUsers;
 		}
-		$notification = $this->createNotification($chat, $comment, 'mention');
+		$subject = $this->getNotificationSubject($comment);
+		$notification = $this->createNotification($chat, $comment, $subject);
 		$shouldFlush = $this->notificationManager->defer();
 		foreach ($usersToNotify as $mentionedUser) {
 			if ($this->shouldMentionedUserBeNotified($mentionedUser['id'], $comment)) {
@@ -115,6 +116,16 @@ class Notifier {
 		}
 
 		return $alreadyNotifiedUsers;
+	}
+
+	private function getNotificationSubject(IComment $comment): string {
+		$usersToNotify = $this->getMentionedUsers($comment);
+		foreach ($usersToNotify as $user) {
+			if ($user['id'] === 'all') {
+				return 'mention_all';
+			}
+		}
+		return 'mention';
 	}
 
 	private function getUsersToNotify(Room $chat, IComment $comment, array $alreadyNotifiedUsers): array {
