@@ -22,8 +22,7 @@
 
 <template>
 	<div v-show="showSidebarPlaceholder" class="right-sidebar-container">
-		<AppSidebar
-			id="app-sidebar"
+		<AppSidebar id="app-sidebar"
 			:title="title"
 			:title-tooltip="title"
 			:starred="isFavorited"
@@ -39,8 +38,7 @@
 			<template slot="description">
 				<LobbyStatus v-if="canFullModerate && hasLobbyEnabled" :token="token" />
 			</template>
-			<AppSidebarTab
-				v-if="showChatInSidebar"
+			<AppSidebarTab v-if="showChatInSidebar"
 				id="chat"
 				:order="1"
 				:name="t('spreed', 'Chat')"
@@ -53,20 +51,16 @@
 				:order="2"
 				:name="participantsText"
 				icon="icon-contacts-dark">
-				<ParticipantsTab
-					:is-active="activeTab === 'participants'"
+				<ParticipantsTab :is-active="activeTab === 'participants'"
 					:can-search="canSearchParticipants"
 					:can-add="canAddParticipants" />
 			</AppSidebarTab>
-			<AppSidebarTab
-				id="details-tab"
+			<AppSidebarTab id="details-tab"
 				:order="3"
 				:name="t('spreed', 'Details')"
 				icon="icon-details">
-				<SetGuestUsername
-					v-if="!getUserId" />
-				<SipSettings
-					v-if="showSIPSettings"
+				<SetGuestUsername v-if="!getUserId" />
+				<SipSettings v-if="showSIPSettings"
 					:meeting-id="conversation.token"
 					:attendee-pin="conversation.attendeePin" />
 				<CollectionList
