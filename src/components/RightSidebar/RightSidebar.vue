@@ -21,8 +21,9 @@
 -->
 
 <template>
-	<div v-show="showSidebarPlaceholder" class="right-sidebar-container">
-		<AppSidebar id="app-sidebar"
+	<div class="right-sidebar-container" v-show="showSidebarPlaceholder">
+		<AppSidebar
+			id="app-sidebar"
 			:title="title"
 			:title-tooltip="title"
 			:starred="isFavorited"
@@ -38,7 +39,8 @@
 			<template slot="description">
 				<LobbyStatus v-if="canFullModerate && hasLobbyEnabled" :token="token" />
 			</template>
-			<AppSidebarTab v-if="showChatInSidebar"
+			<AppSidebarTab
+				v-if="showChatInSidebar"
 				id="chat"
 				:order="1"
 				:name="t('spreed', 'Chat')"
@@ -51,16 +53,20 @@
 				:order="2"
 				:name="participantsText"
 				icon="icon-contacts-dark">
-				<ParticipantsTab :is-active="activeTab === 'participants'"
+				<ParticipantsTab
+					:is-active="activeTab === 'participants'"
 					:can-search="canSearchParticipants"
 					:can-add="canAddParticipants" />
 			</AppSidebarTab>
-			<AppSidebarTab id="details-tab"
+			<AppSidebarTab
+				id="details-tab"
 				:order="3"
 				:name="t('spreed', 'Details')"
 				icon="icon-details">
-				<SetGuestUsername v-if="!getUserId" />
-				<SipSettings v-if="showSIPSettings"
+				<SetGuestUsername
+					v-if="!getUserId" />
+				<SipSettings
+					v-if="showSIPSettings"
 					:meeting-id="conversation.token"
 					:attendee-pin="conversation.attendeePin" />
 				<CollectionList
@@ -126,6 +132,7 @@ export default {
 			conversationName: '',
 			// Sidebar status before starting editing operation
 			sidebarOpenBeforeEditingName: '',
+			largeScreen: false,
 		}
 	},
 
@@ -136,8 +143,8 @@ export default {
 		opened() {
 			return !!this.token && !this.isInLobby && this.show
 		},
-    showSidebarPlaceholder() {
-			if (!this.largeBox) {
+		showSidebarPlaceholder() {
+			if (!this.largeScreen) {
 				return !!this.token && !this.isInLobby && this.show
 			} else {
 				return true
@@ -167,7 +174,7 @@ export default {
 		},
 		canSearchParticipants() {
 			return (this.conversation.type === CONVERSATION.TYPE.GROUP
-          || (this.conversation.type === CONVERSATION.TYPE.PUBLIC && this.conversation.objectType !== 'share:password'))
+					|| (this.conversation.type === CONVERSATION.TYPE.PUBLIC && this.conversation.objectType !== 'share:password'))
 		},
 		isSearching() {
 			return this.searchText !== ''
@@ -203,7 +210,7 @@ export default {
 
 		showSIPSettings() {
 			return this.conversation.sipEnabled === WEBINAR.SIP.ENABLED
-          && this.conversation.attendeePin
+				&& this.conversation.attendeePin
 		},
 
 		hasLobbyEnabled() {
@@ -236,14 +243,14 @@ export default {
 	},
 	mounted() {
 		this.resize()
-		window.addEventListener('resize', this.resize)
+		window.addEventListener("resize", this.resize)
 	},
 	destroyed() {
-		window.removeEventListener('resize', this.resize)
+		window.removeEventListener("resize", this.resize)
 	},
 	methods: {
-		resize() {
-			this.largeBox = window.innerWidth > 1400
+		resize () {
+			this.largeScreen = window.innerWidth > 1400
 		},
 		handleClose() {
 			this.dismissEditing()
@@ -302,34 +309,34 @@ export default {
 /* Override style set in server for "#app-sidebar" to match the style set in
  * nextcloud-vue for ".app-sidebar". */
 #app-sidebar {
-  display: flex;
+	display: flex;
 }
 
 ::v-deep .app-sidebar-header__description {
-  flex-direction: column;
+	flex-direction: column;
 }
 
 .app-sidebar-tabs__content #tab-chat {
-  /* Remove padding to maximize the space for the chat view. */
-  padding: 0;
-  height: 100%;
+	/* Remove padding to maximize the space for the chat view. */
+	padding: 0;
+	height: 100%;
 }
 
 .right-sidebar-container {
-  background: var(--color-main-background);
-  border-left: 1px solid var(--color-border);
+	background: var(--color-main-background);
+	border-left: 1px solid var(--color-border);
 }
 
 .sidebar-open {
-  opacity: 1;
-  transform: translateX(0);
+	opacity: 1;
+	transform: translateX(0);
 }
 
 .sidebar-hide {
-  opacity: 0;
-  transform: translateX(100%);
+	opacity: 0;
+	transform: translateX(100%);
 }
 .sidebar-default {
-  transition: all 0.3s ease-in-out;
+	transition: all 0.3s ease-in-out;
 }
 </style>
