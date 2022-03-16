@@ -79,11 +79,11 @@
 				</option>
 			</select>
 			<br>
-			<button class="button primary"
+			<Button type="primary"
 				:disabled="!hostedHPBFilled || loading"
 				@click="requestHPBTrial">
 				{{ t('spreed', 'Request signaling server trial') }}
-			</button>
+			</Button>
 			<p v-if="requestError !== ''"
 				class="warning">
 				{{ requestError }}
@@ -118,11 +118,11 @@
 				class="warning">
 				{{ requestError }}
 			</p>
-			<button class="button delete"
+			<Button type="error"
 				:disabled="loading"
 				@click="deleteAccount">
 				{{ t('spreed', 'Delete the signaling server account') }}
-			</button>
+			</Button>
 		</div>
 	</div>
 </template>
@@ -132,10 +132,13 @@ import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import moment from '@nextcloud/moment'
+import Button from '@nextcloud/vue/dist/Components/Button'
 
 export default {
 	name: 'HostedSignalingServer',
-
+	components: {
+		Button,
+	},
 	data() {
 		return {
 			hostedHPBNextcloudUrl: '',
@@ -263,19 +266,6 @@ tr:last-child td {
 
 tr :first-child {
 	opacity: .5;
-}
-
-.delete {
-	background: var(--color-main-background);
-	border-color: var(--color-error);
-	color: var(--color-error);
-}
-
-.delete:hover,
-.delete:active {
-	background: var(--color-error);
-	border-color: var(--color-error) !important;
-	color: var(--color-main-background);
 }
 
 </style>
