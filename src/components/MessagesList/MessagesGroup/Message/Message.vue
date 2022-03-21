@@ -32,8 +32,7 @@ the main body of the message as well as a quote.
 		:data-next-message-id="nextMessageId"
 		:data-previous-message-id="previousMessageId"
 		class="message">
-		<div
-			:class="{'normal-message-body': !isSystemMessage && !isDeletedMessage, 'system' : isSystemMessage}"
+		<div :class="{'normal-message-body': !isSystemMessage && !isDeletedMessage, 'system' : isSystemMessage}"
 			class="message-body"
 			@mouseover="handleMouseover"
 			@mouseleave="handleMouseleave">
@@ -127,8 +126,7 @@ the main body of the message as well as a quote.
 							:boundaries-element="containerElement"
 							@open="handleActionMenuUpdate('open')"
 							@close="handleActionMenuUpdate('close')">
-							<ActionButton
-								v-if="isPrivateReplyable"
+							<ActionButton v-if="isPrivateReplyable"
 								icon="icon-user"
 								:close-after-click="true"
 								@click.stop="handlePrivateReply">
