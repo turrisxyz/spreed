@@ -96,3 +96,4 @@ title: Capabilities
 ## 15
 * `chat-permission` - When permission 128 is required to post chat messages, reaction or share items to the conversation
 * `sip-support-nopin` - Whether SIP can be configured to not require a custom attendee PIN
+* `resend-call-notification` - When the API allows to resend call notifications for individual users that did not join yet

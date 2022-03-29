@@ -103,6 +103,7 @@ class Capabilities implements IPublicCapability {
 				'rich-object-list-media',
 				'rich-object-delete',
 				'chat-permission',
+				'resend-call-notification',
 			],
 			'config' => [
 				'attachments' => [

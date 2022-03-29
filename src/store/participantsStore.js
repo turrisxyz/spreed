@@ -25,6 +25,7 @@ import {
 	demoteFromModerator,
 	removeAttendeeFromConversation,
 	resendInvitations,
+	resendCallNotification,
 	joinConversation,
 	leaveConversation,
 	removeCurrentUserFromConversation,
@@ -434,6 +435,18 @@ const actions = {
 	 */
 	async resendInvitations(_, { token, attendeeId }) {
 		await resendInvitations(token, { attendeeId })
+	},
+
+	/**
+	 * Resends call notification for the given attendee in the conversation.
+	 *
+	 * @param {object} _ - unused.
+	 * @param {object} data - the wrapping object.
+	 * @param {string} data.token - conversation token.
+	 * @param {number} data.attendeeId - attendee id to target.
+	 */
+	async resendCallNotification(_, { token, attendeeId }) {
+		await resendCallNotification(token, { attendeeId })
 	},
 
 	/**
