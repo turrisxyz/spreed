@@ -473,6 +473,9 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 				if (isset($expectedKeys['permissions'])) {
 					$data['permissions'] = (string) $attendee['permissions'];
 				}
+				if (isset($expectedKeys['attendeePermissions'])) {
+					$data['attendeePermissions'] = (string) $attendee['attendeePermissions'];
+				}
 
 				if (!isset(self::$userToAttendeeId[$attendee['actorType']])) {
 					self::$userToAttendeeId[$attendee['actorType']] = [];
@@ -500,6 +503,9 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 			$result = array_map(function ($attendee) {
 				if (isset($attendee['permissions'])) {
 					$attendee['permissions'] = $this->mapPermissionsAPIOutput($attendee['permissions']);
+				}
+				if (isset($attendee['attendeePermissions'])) {
+					$attendee['attendeePermissions'] = $this->mapPermissionsAPIOutput($attendee['attendeePermissions']);
 				}
 				return $attendee;
 			}, $result);
@@ -584,7 +590,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	private function mapPermissionsAPIOutput($permissions): string {
 		$permissions = (int) $permissions;
 
-		$permissionsString = '';
+		$permissionsString = !$permissions ? 'D' : '';
 		foreach (self::$permissionsMap as $char => $int) {
 			if ($permissions & $int) {
 				$permissionsString .= $char;
@@ -1548,6 +1554,22 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	}
 
 	/**
+	 * @Then /^user "([^"]*)" sees the following shared media in room "([^"]*)" with (\d+)(?: \((v1)\))?$/
+	 *
+	 * @param string $user
+	 * @param string $identifier
+	 * @param string $statusCode
+	 * @param string $apiVersion
+	 */
+	public function userSeesTheFollowingSharedMediaInRoom($user, $identifier, $statusCode, $apiVersion = 'v1', TableNode $formData = null): void {
+		$this->setCurrentUser($user);
+		$this->sendRequest('GET', '/apps/spreed/api/' . $apiVersion . '/chat/' . self::$identifierToToken[$identifier] . '/share');
+		$this->assertStatusCode($this->response, $statusCode);
+
+		$this->compareDataResponse($formData);
+	}
+
+	/**
 	 * @Then /^user "([^"]*)" received a system messages in room "([^"]*)" to delete "([^"]*)"(?: \((v1)\))?$/
 	 *
 	 * @param string $user
@@ -1608,6 +1630,9 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 			// replies; this is needed to get special messages not explicitly
 			// sent like those for shared files.
 			self::$messages[$message['message']] = $message['id'];
+			if ($message['message'] === '{file}' && isset($message['messageParameters']['file']['name'])) {
+				self::$messages['shared::file::' . $message['messageParameters']['file']['name']] = $message['id'];
+			}
 		}
 
 		if ($formData === null) {
@@ -1666,6 +1691,9 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		$messages = array_filter($messages, function (array $message) {
 			return $message['systemMessage'] !== '';
 		});
+
+		// Fix index gaps after the array_filter above
+		$messages = array_values($messages);
 
 		foreach ($messages as $systemMessage) {
 			// Include the received system messages in the list of messages used
@@ -2074,28 +2102,25 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	 * @param string $group
 	 */
 	public function assureGroupExists($group) {
-		$response = $this->groupExists($group);
-		if ($response->getStatusCode() !== 200) {
-			$this->createGroup($group);
-			$response = $this->groupExists($group);
-			$this->assertStatusCode($response, 200);
-		}
-	}
-
-	private function groupExists($group) {
-		$currentUser = $this->currentUser;
-		$this->setCurrentUser('admin');
-		$this->sendRequest('GET', '/cloud/groups/' . $group);
-		$this->setCurrentUser($currentUser);
-		return $this->response;
-	}
-
-	private function createGroup($group) {
 		$currentUser = $this->currentUser;
 		$this->setCurrentUser('admin');
 		$this->sendRequest('POST', '/cloud/groups', [
 			'groupid' => $group,
 		]);
+
+		$jsonBody = json_decode($this->response->getBody()->getContents(), true);
+		if (isset($jsonBody['ocs']['meta'])) {
+			// 102 = group exists
+			// 200 = created with success
+			Assert::assertContains(
+				$jsonBody['ocs']['meta']['statuscode'],
+				[102, 200],
+				$jsonBody['ocs']['meta']['message']
+			);
+		} else {
+			throw new \Exception('Invalid response when create group');
+		}
+
 		$this->setCurrentUser($currentUser);
 
 		$this->createdGroups[] = $group;
@@ -2143,7 +2168,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	/**
 	 * @Given /^user "([^"]*)" (delete react|react) with "([^"]*)" on message "([^"]*)" to room "([^"]*)" with (\d+)(?: \((v1)\))?$/
 	 */
-	public function userReactWithOnMessageToRoomWith(string $user, string $action, string $reaction, string $message, string $identifier, int $statusCode, string $apiVersion = 'v1'): void {
+	public function userReactWithOnMessageToRoomWith(string $user, string $action, string $reaction, string $message, string $identifier, int $statusCode, string $apiVersion = 'v1', TableNode $formData = null): void {
 		$token = self::$identifierToToken[$identifier];
 		$messageId = self::$messages[$message];
 		$this->setCurrentUser($user);
@@ -2152,6 +2177,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 			'reaction' => $reaction
 		]);
 		$this->assertStatusCode($this->response, $statusCode);
+		$this->assertReactionList($formData);
 	}
 
 	/**
@@ -2167,8 +2193,11 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		$this->assertReactionList($formData);
 	}
 
-	private function assertReactionList(TableNode $formData): void {
+	private function assertReactionList(?TableNode $formData): void {
 		$expected = [];
+		if (!$formData instanceof TableNode) {
+			return;
+		}
 		foreach ($formData->getHash() as $row) {
 			$reaction = $row['reaction'];
 			unset($row['reaction']);
@@ -2181,6 +2210,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 				unset($reaction['timestamp']);
 				return $reaction;
 			}, $list);
+			Assert::assertArrayHasKey($reaction, $expected, 'Not expected reaction: ' . $reaction);
 			Assert::assertCount(count($list), $expected[$reaction], 'Reaction count by type does not match');
 
 			usort($expected[$reaction], [self::class, 'sortAttendees']);

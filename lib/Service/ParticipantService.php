@@ -26,10 +26,12 @@ namespace OCA\Talk\Service;
 use OCA\Circles\CirclesManager;
 use OCA\Circles\Model\Circle;
 use OCA\Circles\Model\Member;
+use OCA\Talk\Chat\ChatManager;
 use OCA\Talk\Config;
 use OCA\Talk\Events\AddParticipantsEvent;
 use OCA\Talk\Events\AttendeesAddedEvent;
 use OCA\Talk\Events\AttendeesRemovedEvent;
+use OCA\Talk\Events\ChatEvent;
 use OCA\Talk\Events\EndCallForEveryoneEvent;
 use OCA\Talk\Events\JoinRoomGuestEvent;
 use OCA\Talk\Events\JoinRoomUserEvent;
@@ -59,6 +61,7 @@ use OCP\Comments\IComment;
 use OCP\DB\Exception;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\ICacheFactory;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\IGroup;
@@ -94,6 +97,8 @@ class ParticipantService {
 	private $notifications;
 	/** @var ITimeFactory */
 	private $timeFactory;
+	/** @var ICacheFactory */
+	private $cacheFactory;
 
 	public function __construct(IConfig $serverConfig,
 								Config $talkConfig,
@@ -107,7 +112,8 @@ class ParticipantService {
 								IGroupManager $groupManager,
 								MembershipService $membershipService,
 								Notifications $notifications,
-								ITimeFactory $timeFactory) {
+								ITimeFactory $timeFactory,
+								ICacheFactory $cacheFactory) {
 		$this->serverConfig = $serverConfig;
 		$this->talkConfig = $talkConfig;
 		$this->attendeeMapper = $attendeeMapper;
@@ -120,6 +126,7 @@ class ParticipantService {
 		$this->groupManager = $groupManager;
 		$this->membershipService = $membershipService;
 		$this->timeFactory = $timeFactory;
+		$this->cacheFactory = $cacheFactory;
 		$this->notifications = $notifications;
 	}
 
@@ -367,7 +374,7 @@ class ParticipantService {
 		if (empty($participants)) {
 			return;
 		}
-		$event = new AddParticipantsEvent($room, $participants);
+		$event = new AddParticipantsEvent($room, $participants, true);
 		$this->dispatcher->dispatch(Room::EVENT_BEFORE_USERS_ADD, $event);
 
 		$lastMessage = 0;
@@ -426,7 +433,23 @@ class ParticipantService {
 			$this->dispatcher->dispatchTyped($attendeeEvent);
 
 			$this->dispatcher->dispatch(Room::EVENT_AFTER_USERS_ADD, $event);
+
+			$lastMessage = $event->getLastMessage();
+			if ($lastMessage instanceof IComment) {
+				$this->updateRoomLastMessage($room, $lastMessage);
+			}
 		}
+	}
+
+	protected function updateRoomLastMessage(Room $room, IComment $message): void {
+		$room->setLastMessage($message);
+		$lastMessageCache = $this->cacheFactory->createDistributed('talk/lastmsgid');
+		$lastMessageCache->remove($room->getToken());
+		$unreadCountCache = $this->cacheFactory->createDistributed('talk/unreadcount');
+		$unreadCountCache->clear($room->getId() . '-');
+
+		$event = new ChatEvent($room, $message);
+		$this->dispatcher->dispatch(ChatManager::EVENT_AFTER_MULTIPLE_SYSTEM_MESSAGE_SEND, $event);
 	}
 
 	public function getHighestPermissionAttendee(Room $room): ?Attendee {
@@ -913,14 +936,21 @@ class ParticipantService {
 
 		$participants = $this->getParticipantsInCall($room);
 		$changedSessionIds = [];
+		$changedUserIds = [];
 
 		// kick out all participants out of the call
 		foreach ($participants as $participant) {
 			$changedSessionIds[] = $participant->getSession()->getSessionId();
+			if ($participant->getAttendee()->getActorType() === Attendee::ACTOR_USERS) {
+				$changedUserIds[] = $participant->getAttendee()->getActorId();
+			}
 			$this->changeInCall($room, $participant, Participant::FLAG_DISCONNECTED, true);
 		}
 
+		$this->sessionMapper->resetInCallByIds($changedSessionIds);
+
 		$event->setSessionIds($changedSessionIds);
+		$event->setUserIds($changedUserIds);
 
 		$this->dispatcher->dispatch(Room::EVENT_AFTER_END_CALL_FOR_EVERYONE, $event);
 	}
@@ -952,7 +982,9 @@ class ParticipantService {
 		}
 
 		$session->setInCall($flags);
-		$this->sessionMapper->update($session);
+		if (!$endCallForEveryone) {
+			$this->sessionMapper->update($session);
+		}
 
 		if ($flags !== Participant::FLAG_DISCONNECTED) {
 			$attendee = $participant->getAttendee();
@@ -1194,7 +1226,7 @@ class ParticipantService {
 
 		$helper = new SelectHelper();
 		$helper->selectAttendeesTable($query);
-		$helper->selectSessionsTableMax($query);
+		$helper->selectSessionsTable($query);
 		$query->from('talk_attendees', 'a')
 			// Currently we only care if the user has a session at all, so we can select any: #ThisIsFine
 			->leftJoin(
@@ -1202,10 +1234,16 @@ class ParticipantService {
 				$query->expr()->eq('s.attendee_id', 'a.id')
 			)
 			->where($query->expr()->eq('a.room_id', $query->createNamedParameter($room->getId(), IQueryBuilder::PARAM_INT)))
-			->andWhere($query->expr()->eq('a.notification_level', $query->createNamedParameter($notificationLevel, IQueryBuilder::PARAM_INT)))
-			->groupBy('a.id');
+			->andWhere($query->expr()->eq('a.notification_level', $query->createNamedParameter($notificationLevel, IQueryBuilder::PARAM_INT)));
 
-		return $this->getParticipantsFromQuery($query, $room);
+		$participants = $this->getParticipantsFromQuery($query, $room);
+
+		$uniqueAttendees = [];
+		foreach ($participants as $participant) {
+			$uniqueAttendees[$participant->getAttendee()->getId()] = $participant;
+		}
+
+		return array_values($uniqueAttendees);
 	}
 
 	/**

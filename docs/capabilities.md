@@ -90,3 +90,5 @@ title: Capabilities
 ## 14
 * `chat-unread` - Whether the API to mark a conversation as unread is available
 * `reactions` - Api reactions to chat message
+* `rich-object-list-media` - When the API to get the chat messages for shared media is available
+* `rich-object-delete` - When the API allows to delete chat messages which are file or rich object shares

@@ -43,6 +43,9 @@ use OCP\ICacheFactory;
 use OCP\IDBConnection;
 use OCP\IUser;
 use OCP\Notification\IManager as INotificationManager;
+use OCP\Share\Exceptions\ShareNotFound;
+use OCP\Share\IManager;
+use OCP\Share\IShare;
 
 /**
  * Basic polling chat manager.
@@ -57,6 +60,7 @@ use OCP\Notification\IManager as INotificationManager;
 class ChatManager {
 	public const EVENT_BEFORE_SYSTEM_MESSAGE_SEND = self::class . '::preSendSystemMessage';
 	public const EVENT_AFTER_SYSTEM_MESSAGE_SEND = self::class . '::postSendSystemMessage';
+	public const EVENT_AFTER_MULTIPLE_SYSTEM_MESSAGE_SEND = self::class . '::postSendMultipleSystemMessage';
 	public const EVENT_BEFORE_MESSAGE_SEND = self::class . '::preSendMessage';
 	public const EVENT_AFTER_MESSAGE_SEND = self::class . '::postSendMessage';
 
@@ -73,6 +77,8 @@ class ChatManager {
 	private $connection;
 	/** @var INotificationManager */
 	private $notificationManager;
+	/** @var IManager */
+	private $shareManager;
 	/** @var RoomShareProvider */
 	private $shareProvider;
 	/** @var ParticipantService */
@@ -90,6 +96,7 @@ class ChatManager {
 								IEventDispatcher $dispatcher,
 								IDBConnection $connection,
 								INotificationManager $notificationManager,
+								IManager $shareManager,
 								RoomShareProvider $shareProvider,
 								ParticipantService $participantService,
 								Notifier $notifier,
@@ -99,6 +106,7 @@ class ChatManager {
 		$this->dispatcher = $dispatcher;
 		$this->connection = $connection;
 		$this->notificationManager = $notificationManager;
+		$this->shareManager = $shareManager;
 		$this->shareProvider = $shareProvider;
 		$this->participantService = $participantService;
 		$this->notifier = $notifier;
@@ -118,6 +126,11 @@ class ChatManager {
 	 * @param bool $sendNotifications
 	 * @param string|null $referenceId
 	 * @param int|null $parentId
+	 * @param bool $shouldSkipLastMessageUpdate If multiple messages will be posted
+	 *             (e.g. when adding multiple users to a room) we can skip the last
+	 *             message and last activity update until the last entry was created
+	 *             and then update with those values.
+	 *             This will replace O(n) with 1 database update.
 	 * @return IComment
 	 */
 	public function addSystemMessage(
@@ -128,7 +141,8 @@ class ChatManager {
 		\DateTime $creationDateTime,
 		bool $sendNotifications,
 		?string $referenceId = null,
-		?int $parentId = null
+		?int $parentId = null,
+		bool $shouldSkipLastMessageUpdate = false
 	): IComment {
 		$comment = $this->commentsManager->create($actorType, $actorId, 'chat', (string) $chat->getId());
 		$comment->setMessage($message, self::MAX_CHAT_LENGTH);
@@ -152,14 +166,16 @@ class ChatManager {
 			$comment->setVerb('system');
 		}
 
-		$event = new ChatEvent($chat, $comment);
+		$event = new ChatEvent($chat, $comment, $shouldSkipLastMessageUpdate);
 		$this->dispatcher->dispatch(self::EVENT_BEFORE_SYSTEM_MESSAGE_SEND, $event);
 		try {
 			$this->commentsManager->save($comment);
 
-			// Update last_message
-			$chat->setLastMessage($comment);
-			$this->unreadCountCache->clear($chat->getId() . '-');
+			if (!$shouldSkipLastMessageUpdate) {
+				// Update last_message
+				$chat->setLastMessage($comment);
+				$this->unreadCountCache->clear($chat->getId() . '-');
+			}
 
 			if ($sendNotifications) {
 				$this->notifier->notifyOtherParticipant($chat, $comment, []);
@@ -245,6 +261,8 @@ class ChatManager {
 			if ($comment->getActorType() !== 'bots' || $comment->getActorId() === 'changelog') {
 				$chat->setLastMessage($comment);
 				$this->unreadCountCache->clear($chat->getId() . '-');
+			} else {
+				$chat->setLastActivity($comment->getCreationDateTime());
 			}
 
 			$alreadyNotifiedUsers = [];
@@ -276,12 +294,54 @@ class ChatManager {
 		return $comment;
 	}
 
-	public function deleteMessage(Room $chat, int $messageId, string $actorType, string $actorId, \DateTime $deletionTime): IComment {
-		$comment = $this->getComment($chat, (string) $messageId);
+	/**
+	 * @param Room $room
+	 * @param Participant $participant
+	 * @param array $messageData
+	 * @throws ShareNotFound
+	 */
+	public function unshareFileOnMessageDelete(Room $room, Participant $participant, array $messageData): void {
+		if (!isset($messageData['message'], $messageData['parameters']['share']) || $messageData['message'] !== 'file_shared') {
+			// Not a file share
+			return;
+		}
+
+		$share = $this->shareManager->getShareById('ocRoomShare:' . $messageData['parameters']['share']);
+
+		if ($share->getShareType() !== IShare::TYPE_ROOM || $share->getSharedWith() !== $room->getToken()) {
+			// Share does not match the correct room
+			throw new ShareNotFound();
+		}
+
+		$attendee = $participant->getAttendee();
+
+		if (!$participant->hasModeratorPermissions() &&
+			!($attendee->getActorType() === Attendee::ACTOR_USERS && $attendee->getActorId() === $share->getShareOwner())) {
+			// Only moderators or the share owner can delete the share
+			return;
+		}
+
+		$this->shareManager->deleteShare($share);
+	}
+
+	/**
+	 * @param Room $chat
+	 * @param IComment $comment
+	 * @param Participant $participant
+	 * @param \DateTime $deletionTime
+	 * @return IComment
+	 * @throws ShareNotFound
+	 */
+	public function deleteMessage(Room $chat, IComment $comment, Participant $participant, \DateTime $deletionTime): IComment {
+		if ($comment->getVerb() === 'object_shared') {
+			$messageData = json_decode($comment->getMessage(), true);
+			$this->unshareFileOnMessageDelete($chat, $participant, $messageData);
+		}
+
 		$comment->setMessage(
 			json_encode([
-				'deleted_by_type' => $actorType,
-				'deleted_by_id' => $actorId,
+				'deleted_by_type' => $participant->getAttendee()->getActorType(),
+				'deleted_by_id' => $participant->getAttendee()->getActorId(),
 				'deleted_on' => $deletionTime->getTimestamp(),
 			])
 		);
@@ -290,13 +350,13 @@ class ChatManager {
 
 		return $this->addSystemMessage(
 			$chat,
-			$actorType,
-			$actorId,
-			json_encode(['message' => 'message_deleted', 'parameters' => ['message' => $messageId]]),
+			$participant->getAttendee()->getActorType(),
+			$participant->getAttendee()->getActorId(),
+			json_encode(['message' => 'message_deleted', 'parameters' => ['message' => $comment->getId()]]),
 			$this->timeFactory->getDateTime(),
 			false,
 			null,
-			$messageId
+			(int) $comment->getId()
 		);
 	}
 
@@ -551,6 +611,25 @@ class ChatManager {
 		$this->shareProvider->deleteInRoom($chat->getToken());
 
 		$this->notifier->removePendingNotificationsForRoom($chat);
+	}
+
+	/**
+	 * Search for comments with a given content
+	 *
+	 * @param Room $chat
+	 * @param int $offset
+	 * @param int $limit
+	 * @return IComment[]
+	 */
+	public function getSharedObjectMessages(Room $chat, int $offset, int $limit): array {
+		return $this->commentsManager->getCommentsWithVerbForObjectSinceComment(
+			'chat',
+			(string) $chat->getId(),
+			['object_shared'],
+			$offset,
+			'desc',
+			$limit
+		);
 	}
 
 	/**

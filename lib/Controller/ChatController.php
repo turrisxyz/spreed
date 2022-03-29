@@ -53,6 +53,7 @@ use OCP\IUserManager;
 use OCP\RichObjectStrings\InvalidObjectExeption;
 use OCP\RichObjectStrings\IValidator;
 use OCP\Security\ITrustedDomainHelper;
+use OCP\Share\Exceptions\ShareNotFound;
 use OCP\User\Events\UserLiveStatusEvent;
 use OCP\UserStatus\IManager as IUserStatusManager;
 use OCP\UserStatus\IUserStatus;
@@ -581,8 +582,8 @@ class ChatController extends AEnvironmentAwareController {
 			return new DataResponse([], Http::STATUS_FORBIDDEN);
 		}
 
-		if ($message->getVerb() !== 'comment') {
-			// System message or file share (since the message is not parsed, it has type "system")
+		if ($message->getVerb() !== 'comment' && $message->getVerb() !== 'object_shared') {
+			// System message (since the message is not parsed, it has type "system")
 			return new DataResponse([], Http::STATUS_METHOD_NOT_ALLOWED);
 		}
 
@@ -593,13 +594,16 @@ class ChatController extends AEnvironmentAwareController {
 			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 
-		$systemMessageComment = $this->chatManager->deleteMessage(
-			$this->room,
-			$messageId,
-			$attendee->getActorType(),
-			$attendee->getActorId(),
-			$this->timeFactory->getDateTime()
-		);
+		try {
+			$systemMessageComment = $this->chatManager->deleteMessage(
+				$this->room,
+				$message,
+				$this->participant,
+				$this->timeFactory->getDateTime()
+			);
+		} catch (ShareNotFound $e) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
 
 		$systemMessage = $this->messageParser->createMessage($this->room, $this->participant, $systemMessageComment, $this->l);
 		$this->messageParser->parseMessage($systemMessage);
@@ -698,6 +702,44 @@ class ChatController extends AEnvironmentAwareController {
 		}
 
 		return $this->setReadMarker($unreadId);
+	}
+
+	/**
+	 * @PublicPage
+	 * @RequireParticipant
+	 * @RequireReadWriteConversation
+	 * @RequireModeratorOrNoLobby
+	 *
+	 * @param int $lastKnownMessageId
+	 * @param int $limit
+	 * @return DataResponse
+	 */
+	public function getObjectsSharedInRoom(int $lastKnownMessageId = 0, int $limit = 100): DataResponse {
+		$offset = max(0, $lastKnownMessageId);
+		$limit = min(200, $limit);
+
+		$comments = $this->chatManager->getSharedObjectMessages($this->room, $offset, $limit);
+
+		$messages = [];
+		foreach ($comments as $comment) {
+			$message = $this->messageParser->createMessage($this->room, $this->participant, $comment, $this->l);
+			$this->messageParser->parseMessage($message);
+
+			if (!$message->getVisibility()) {
+				continue;
+			}
+
+			$messages[] = $message->toArray();
+		}
+
+		$response = new DataResponse($messages, Http::STATUS_OK);
+
+		$newLastKnown = end($comments);
+		if ($newLastKnown instanceof IComment) {
+			$response->addHeader('X-Chat-Last-Given', $newLastKnown->getId());
+		}
+
+		return $response;
 	}
 
 	/**
